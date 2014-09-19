@@ -3,9 +3,10 @@ package rule
 
 import (
 	"fmt"
+	"strings"
 )
 
-type Error map[string][]string
+type Error map[string]Msgs
 type T func(obj interface{}) Error
 type Msgs []string
 
@@ -15,6 +16,10 @@ func Passed(err Error) bool {
 
 func Failed(err Error) bool {
 	return !Passed(err)
+}
+
+func (ms Msgs) String() string {
+	return strings.Join(ms, ", ")
 }
 
 func (err Error) Error() string {
