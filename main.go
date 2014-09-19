@@ -1,6 +1,10 @@
 
 package rule
 
+import (
+	"fmt"
+)
+
 type Error map[string][]string
 type T func(obj interface{}) Error
 type Msgs []string
@@ -11,6 +15,14 @@ func Passed(err Error) bool {
 
 func Failed(err Error) bool {
 	return !Passed(err)
+}
+
+func (err Error) Error() string {
+	var s string
+	for k, v := range err {
+		s += fmt.Sprintf("%v: %v\n", k, v)
+	}
+	return s
 }
 
 func One(rules ...T) T {
