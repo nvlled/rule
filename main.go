@@ -2,6 +2,7 @@
 package rule
 
 import (
+	"encoding/gob"
 	"fmt"
 	"strings"
 )
@@ -11,7 +12,7 @@ type T func(obj interface{}) Error
 type Msgs []string
 
 func Passed(err Error) bool {
-	return len(err) == 0
+	return err == nil
 }
 
 func Failed(err Error) bool {
@@ -44,10 +45,13 @@ func One(rules ...T) T {
 
 func All(rules ...T) T {
 	return T(func(obj interface{}) Error {
-		allErrors := make(Error)
+		var allErrors Error
 		for _,rule := range rules {
 			err := rule(obj)
-			Merge(allErrors, err)
+			allErrors = Merge(allErrors, err)
+		}
+		if len(allErrors) == 0 {
+			return nil
 		}
 		return allErrors
 	})
@@ -67,8 +71,15 @@ func AnError(name string, messages ...string) Error {
 	return Error{name : Msgs(messages)}
 }
 
+func init() {
+	gob.Register(&Msgs{})
+	gob.Register(&Error{})
+}
+
 func main() {
 }
+
+
 
 
 

@@ -13,38 +13,34 @@ type account struct  {
 
 type Fn func(x int) int
 
-func cast(t interface{}, fn func(account) Error) Error {
-	switch t := t.(type) {
+func cast(fn func(acc account) Error) T {
+	return T(func(t interface{}) Error {
+		switch t := t.(type) {
 		case account: return fn(t)
+		}
+		return AnError("invalid type")
+	})
+}
+
+func usernameIsDumb(acc account) Error {
+	if acc.username == "dumb" {
+		return AnError("username", "username is dumb")
 	}
-	return AnError("message" , "invalid type, not an account")
+	return nil
 }
 
-func usernameIsDumb(t interface{}) Error {
-	return cast(t, func(acc account) Error {
-		if acc.username == "dumb" {
-			return AnError("username", "username is dumb")
-		}
-		return nil
-	})
+func passwordIsDumb(acc account) Error {
+	if acc.password == "dumb" {
+		return AnError("password", "password is dumb")
+	}
+	return nil
 }
 
-func passwordIsDumb(t interface{}) Error {
-	return cast(t, func(acc account) Error {
-		if acc.password == "dumb" {
-			return AnError("password", "password is dumb")
-		}
-		return nil
-	})
-}
-
-func passwordIsShort(t interface{}) Error {
-	return cast(t, func(acc account) Error {
-		if len(acc.password) < 5 {
-			return AnError("password", "password is too short")
-		}
-		return nil
-	})
+func passwordIsShort(acc account) Error {
+	if len(acc.password) < 5 {
+		return AnError("password", "password is too short")
+	}
+	return nil
 }
 
 func TestAll(t *testing.T) {
@@ -52,9 +48,10 @@ func TestAll(t *testing.T) {
 	acc2 := account{"nope", "dumb"}
 	acc3 := account{"nope", "password"}
 
-	rule := All(T(usernameIsDumb), T(passwordIsDumb), T(passwordIsShort))
+	rule := All(cast(usernameIsDumb), cast(passwordIsDumb), cast(passwordIsShort))
 
 	err := rule(acc1)
+	//fmt.Printf(">>\n", err)
 	if err["username"] == nil {
 		t.Error("username should fail")
 	}
@@ -85,7 +82,7 @@ func TestOne(t *testing.T) {
 	acc2 := account{"nope", "dumb"}
 	acc3 := account{"nope", "password"}
 
-	rule := One(T(usernameIsDumb), T(passwordIsDumb))
+	rule := One(cast(usernameIsDumb), cast(passwordIsDumb))
 
 	err := rule(acc1)
 	if !contains(err["username"], "username is dumb") {
