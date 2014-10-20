@@ -12,7 +12,7 @@ type T func(obj interface{}) Error
 type Msgs []string
 
 func Passed(err Error) bool {
-	return err == nil
+	return err == nil || len(err) == 0
 }
 
 func Failed(err Error) bool {
