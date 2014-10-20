@@ -23,6 +23,10 @@ func (ms Msgs) String() string {
 	return strings.Join(ms, ", ")
 }
 
+func (err Error) Insert(name string, msg string) {
+    err[name] = append(err[name], msg)
+}
+
 func (err Error) Error() string {
 	var s string
 	for k, v := range err {
